@@ -113,19 +113,19 @@ Hasil akhir konfigurasi interface tiap client:
 
 Pengujian ping antar client (lintas subnet) untuk membuktikan seluruh entitas dapat saling terhubung:
 
-**Alice to Others**
+**Alice to Others**  
 ![alice-ping-others](<assets/alice-ping-others.png>)
 
-**Mika to Others**
+**Mika to Others**  
 ![mika-ping-others](<assets/mika-ping-others.png>)
 
-**Chisa to Others**
+**Chisa to Others**  
 ![chisa-ping-others](<assets/chisa-ping-others.png>)
 
-**Knights to Others**
+**Knights to Others**  
 ![knights-ping-others](<assets/knights-ping-others.png>)
 
-**Eiri to Others**
+**Eiri to Others**  
 ![eiri-ping-others](<assets/eiri-ping-others.png>)
 
 Seluruh pengujian ping lintas subnet di atas berhasil dengan 0% packet loss pada setiap node ke setiap node lainnya, membuktikan router Lain berhasil meneruskan traffic antar ketiga subnet hanya dengan `ip_forward` aktif, tanpa memerlukan static route tambahan.
