@@ -8,7 +8,7 @@ File yang dianalisis: `soal14_wired_bruteforce.pcapng`
 
 Di Wireshark, file ini dibuka lalu diberi filter `http.request.method == "POST"`. Filter ini dipakai supaya cuma kelihatan paket yang isinya percobaan login (POST ke `/login.php`). Ternyata paket ini muncul berulang-ulang ratusan kali, semua dari IP yang sama menuju IP yang sama - ini tandanya ada serangan brute force (coba password berkali-kali sampai berhasil).
 
-![capture-bruteforce-post](<assets/capture-bruteforce-post.png>)
+![capture-bruteforce-post](<assets/Screenshot 2026-09-17 at 18.09.48>)
 
 Dari situ ketahuan IP penyerangnya `172.26.7.50`, menyerang ke `172.26.7.100` di port `8080` (port ini dilihat dengan klik salah satu paket, lalu buka bagian TCP-nya).
 
