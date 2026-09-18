@@ -49,7 +49,7 @@ Selanjutnya, filter diganti jadi `usb.transfer_type == 0x01` untuk lihat semua d
 
 Dari sini ketahuan juga keyboard itu terdaftar sebagai **Device nomor 7** di sistem.
 
-Bagian paling seru adalah decode pesan rahasianya. Setiap tombol yang ditekan itu terekam sebagai kode angka (bukan huruf langsung), jadi harus dicocokkan satu-satu pakai tabel kode keyboard USB (namanya tabel HID Usage ID).
+Setiap tombol yang ditekan itu terekam sebagai kode angka (bukan huruf langsung), jadi harus dicocokkan satu-satu pakai tabel kode keyboard USB (namanya tabel HID Usage ID).
 
 ![capdata-usb-hid](<assets/capdata-usb-hid.png>)
 
