@@ -151,6 +151,8 @@ nc 10.4.89.246 3405
 ```
 
 ![nc-validasi-soal18](<assets/nc-validasi-soal18.png>)
+![nc-validasi-soal18](<assets/nc-validasi-soal182.png>)
+
 
 Hasilnya benar dan dapat flag: `KOMJAR26{SMB_Tr4nsf3r_sprNhRiD8FIjzaRrvnlrXkNL0}`
 
