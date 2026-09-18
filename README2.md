@@ -1,4 +1,4 @@
-# Laporan Nomor 14-20 - Praktikum Modul 1 Jarkom 2026
+# Laporan Nomor 14-20 
 
 Bagian ini berisi analisis file capture (.pcap) untuk mencari jejak serangan yang dilakukan Eiri di dalam jaringan The Wired. Setiap nomor punya file capture sendiri, dan jawabannya divalidasi lewat socket server yang disediakan asisten.
 
