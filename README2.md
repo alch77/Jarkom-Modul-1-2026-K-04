@@ -18,7 +18,7 @@ Untuk cari percobaan yang berhasil, dicari paket yang response-nya beda dari yan
 
 Dari situ kelihatan password yang berhasil dipakai adalah `wired_pr0tocol_7` untuk user `lain_admin`, dan server yang dipakai adalah `Apache/2.4.62` (tertulis di bagian header response-nya).
 
-**Rangkuman jawaban:**
+**Dapat disimpulkan**
 - IP penyerang: `172.26.7.50`
 - IP target dan port: `172.26.7.100:8080`
 - Password `lain_admin`: `wired_pr0tocol_7`
@@ -55,7 +55,7 @@ Bagian paling seru adalah decode pesan rahasianya. Setiap tombol yang ditekan it
 
 Setelah semua kode angka itu dicocokkan jadi huruf, ketemu pesan rahasianya: `Wired_Protocol_7_is_alive_2026`
 
-**Rangkuman jawaban:**
+**Dapat disimpulkan**
 - Vendor ID: `0x046d`
 - Product ID: `0xc31c`
 - Nomor device: `7`
@@ -84,7 +84,7 @@ Untuk cari ukuran file malware-nya, dicari perintah `SIZE knights_payload.exe` d
 
 ![ftp-size-response](<assets/ftp-size-response.png>)
 
-**Rangkuman jawaban:**
+**Dapat disimpulkan**
 - IP server FTP: `198.51.100.7`
 - Banner FTP: `vsftpd 3.0.5`
 - Kredensial login: `knights_agent:N4v1_s3cur3_2026`
@@ -109,7 +109,7 @@ Ditemukan permintaan mengunduh file dari domain `wired-update.net`, nama filenya
 
 ![capture-http-c2-response](<assets/capture-http-c2-response.png>)
 
-**Rangkuman jawaban:**
+**Dapat disimpulkan**
 - Domain tempat malware diunduh: `wired-update.net`
 - IP server penyerang: `203.0.113.42`
 - Nama file malware: `navi_agent.exe`
@@ -138,7 +138,7 @@ Filter diganti lagi `smb2.cmd == 5` untuk lihat file apa yang dibuat di situ. Ke
 
 ![capture-smb-create-write](<assets/capture-smb-create-write.png>)
 
-**Rangkuman jawaban:**
+**Dapat disimpulkan**
 - Protokol: SMB2
 - IP pengirim: `10.7.3.100`
 - IP korban: `10.7.1.50`
@@ -164,7 +164,7 @@ Di file ini ada beberapa email yang lewat, tapi yang dicari adalah email dari al
 
 Isi emailnya ternyata ancaman/pemerasan dari Eiri, ditujukan ke `victim@protocol7.co.jp`. Di dalam isi emailnya disebutkan password yang diklaim bocor, jenis malware yang katanya sudah disebar, batas waktu yang diberikan, dan kode ID pengirim.
 
-**Rangkuman jawaban:**
+**Dapat disimpulkan**
 - Email korban: `victim@protocol7.co.jp`
 - Password yang diklaim bocor: `pr0tocol_7_user`
 - Jenis malware: Ransomware
@@ -196,7 +196,7 @@ Setelah dibuka enkripsinya, filter diganti jadi `http` supaya bisa baca isi perc
 
 Isinya ternyata request `HEAD /` ke domain `example.com`, dengan software pengirim (`User-Agent`) bernama `curl/7.62.0`.
 
-**Rangkuman jawaban:**
+**Dapat disimpulkan**
 - Versi TLS: TLS 1.2
 - Domain (SNI): `example.com`
 - IP server: `93.184.216.34`
