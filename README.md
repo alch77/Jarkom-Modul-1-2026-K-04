@@ -312,28 +312,41 @@ Pada capture Wireshark dengan filter `ftp or ftp-data`, ditemukan:
 | Response PASV | `227 Entering Passive Mode (192,213,2,2,117,66)` |
 | Port data yang dinegosiasikan | `117 × 256 + 66 = 30018` (sesuai rentang `pasv_min_port`–`pasv_max_port` yang dikonfigurasi) |
 
+**Revisi**    
 9. Mika mengunduh dokumen Protokol Tujuh menggunakan akun mika, lalu buktikan pembatasan read-only saat mencoba upload (error 550).
 
-File `protokol_tujuh.doc` terlebih dulu disiapkan di server Chisa:
+File yang akan diunduh Mika diambil langsung dari link Google Drive yang disediakan pada soal, lalu diletakkan di shared folder FTP:
 ```bash
-echo "Isi Dokumen Protokol Tujuh" > /var/wired/data/protokol_tujuh.doc
-chmod 644 /var/wired/data/protokol_tujuh.doc
+# di Chisa
+cd /var/wired/data
+wget -O protocol7_manifesto.zip "https://drive.google.com/drive/folders/1S3hG0dnZBTkCta4uILWwKVc6dSYYGRJ6?usp=sharing"
 ```
 
-![prepare-protokol-tujuh](<assets/prepare-protokol-tujuh.png>)
+![download protocol7 manifesto](<assets/download-protocol7-manifesto.png>)
 
-Dari node Mika, file diunduh menggunakan akun `mika` (berhasil), lalu dicoba upload file baru (harus gagal):
+File berhasil diunduh (303.131 bytes / ~296 KB). Service `vsftpd` kemudian di-restart agar shared folder ter-refresh:
 ```bash
-lftp -u mika 192.213.2.2
-get protokol_tujuh.doc
+vsftpd /etc/vsftpd/vsftpd.conf &
+```
+
+![chisa ftp restart](<assets/chisa-ftp-restart.png>)
+
+Dari node Mika, file diunduh menggunakan akun `mika` (harus berhasil karena masih diizinkan read), lalu dicoba upload file baru (harus gagal karena write-only ditolak):
+```bash
+echo "Mencoba upload file baru" > file_baru.txt
+lftp mika@192.213.2.2
 put file_baru.txt
+get protocol7_manifesto.zip
+bye
 ```
 
-![mika-ftp-download](<assets/mika-ftp-download.png>)
+![mika ftp readonly test](<assets/mika-ftp-readonly-test.png>)
 
-![proof-mika-ftp-readonly](<assets/proof-mika-ftp-readonly.png>)
+Hasilnya persis sesuai kebijakan yang diterapkan di poin 7:
+- `put file_baru.txt` → ditolak dengan `550 Permission denied` (write_enable=NO untuk user mika)
+- `get protocol7_manifesto.zip` → berhasil, 303131 bytes transferred (read masih diizinkan)
 
-Server membalas dengan `550 Permission denied` saat `mika` mencoba mengirim `STOR`/`put`, membuktikan pembatasan read-only berhasil diterapkan sesuai konfigurasi `write_enable=NO` pada `/etc/vsftpd/user_conf/mika`.
+Ini membuktikan pembatasan read-only untuk user `mika` berhasil diterapkan sesuai konfigurasi `write_enable=NO` pada `/etc/vsftpd/user_conf/mika`, tanpa memengaruhi hak baca (`get`) yang tetap berfungsi normal.
 
 10. Knights mengirimkan ping ke Chisa dengan payload 128 bytes, interval 0.3 detik, sebanyak 77 paket.
 ```bash
@@ -353,10 +366,12 @@ Capture pada link Switch2–Chisa dengan filter `icmp` menunjukkan pasangan Echo
 | Packet loss | 0% (77 paket terkirim, 77 diterima) |
 | RTT min/avg/max/mdev | 0.458 / 0.601 / 1.201 / 0.143 ms |
 
-11. Buat akun `phantom_user` dengan password `wired_ghost` pada telnetd di Chisa, login dari Eiri, capture di Wireshark, tunjukkan kredensial plaintext via Follow TCP Stream.
+**Revisi**
+11. Buat akun `phantom_user` / `wired_ghost` pada telnetd di Chisa, login dari Eiri, capture di Wireshark, tunjukkan kredensial plaintext via Follow TCP Stream.
 
 Karena node Chisa berbasis Alpine, `telnetd` sudah tersedia bawaan BusyBox — cukup dibuat akunnya:
 ```bash
+# di Chisa
 adduser -D phantom_user
 echo "phantom_user:wired_ghost" | chpasswd
 ```
@@ -365,6 +380,7 @@ echo "phantom_user:wired_ghost" | chpasswd
 
 Dari node Eiri, dilakukan koneksi telnet dan login menggunakan akun tersebut:
 ```bash
+# di Eiri
 telnet 192.213.2.2
 ```
 
@@ -378,6 +394,10 @@ Pada capture Wireshark di link Switch2–Chisa, filter `telnet` menunjukkan pulu
 
 ![follow stream telnet creds](<assets/follow-stream-telnet-creds.png>)
 
+Bukti tambahan tanpa filter (packet list mentah) memperlihatkan pola bolak-balik `192.213.3.3 → 192.213.2.2` dan sebaliknya, dengan panjang data 1 byte untuk hampir setiap paket di awal sesi (fase pengetikan username/password karakter-per-karakter), baru bertambah jadi beberapa byte sekaligus (2, 8, 13, 14 bytes) saat sistem mengirim balasan echo/prompt yang lebih panjang:
+
+![capture telnet raw packets](<assets/capture-telnet-raw-packets.png>)
+
 Setiap karakter yang diketik terkirim sebagai paket TCP terpisah karena Telnet secara default berjalan dalam mode character-at-a-time: tiap tombol langsung dikirim ke server agar server dapat melakukan echo balik secara real-time, bukan dikumpulkan dulu menjadi satu baris sebelum dikirim.
 
 Pada Follow TCP Stream yang benar (diambil sejak awal koneksi), terlihat jelas:
@@ -387,8 +407,22 @@ Pada Follow TCP Stream yang benar (diambil sejak awal koneksi), terlihat jelas:
 
 Ini membuktikan kelemahan fundamental Telnet: tidak ada enkripsi sama sekali, sehingga siapa pun yang bisa melakukan sniffing di jalur jaringan (seperti Eiri melakukan MITM atau siapa pun dengan akses ke link yang sama) dapat membaca username dan password korban secara langsung.
 
+**Revisi**
 12. Alice memindai port Knights: 22 (SSH) dan 80 (HTTP) harus terbuka, 7777 harus tertutup. Analisis perbedaan TCP flag SYN-ACK vs RST-ACK.
+
+Di Knights, port 22 sudah otomatis terbuka karena `sshd` asli (dari setup poin 13) sedang berjalan di sana. Untuk port 80, cukup dibuka listener sederhana pakai `nc`, sementara port 7777 sengaja dibiarkan tertutup:
 ```bash
+# di Knights
+nohup sh -c "nc -lvkp 22 & nc -lvkp 80 &" > /tmp/test.out 2>&1 &
+```
+
+![setup nc listener knights](<assets/setup-nc-listener-knights.png>)
+
+Catatan: karena `sshd` sudah lebih dulu memegang port 22, `nc -lvkp 22` di atas sebenarnya gagal bind (port sudah dipakai) dan yang menjawab scan di port 22 tetap `sshd` asli — inilah kenapa nanti muncul banner asli `SSH-2.0-OpenSSH_10.2` di hasil capture, bukan sekadar listener kosong.
+
+Dari node Alice, port 22, 80, dan 7777 di-scan:
+```bash
+# di Alice
 nc -zv 192.213.3.2 22
 nc -zv 192.213.3.2 80
 nc -zv 192.213.3.2 7777
@@ -406,17 +440,19 @@ Hasilnya: port `22` dan `80` succeeded, sedangkan port `7777` connection refused
 | 80 | Open | `SYN` dibalas `SYN, ACK`, lalu ditutup normal dengan `FIN, ACK` dari kedua sisi |
 | 7777 | Closed | `SYN` langsung dibalas `RST, ACK` — tidak ada proses yang listen di port tersebut |
 
+**Revisi**
 13. Install OpenSSH di Knights, buat key di Mika untuk user mika_admin, konfigurasi `PasswordAuthentication no`, koneksi SSH, dan jelaskan mengapa kredensial tidak terlihat plaintext.
 
-Di Knights (server), OpenSSH diinstal lewat `apk`, lalu dibuat user `mika_admin` dan `PasswordAuthentication` dinonaktifkan:
+Di Knights (server), OpenSSH diinstal lewat `apk`, lalu dibuat user `mika_admin`. `PasswordAuthentication` sengaja dibiarkan `yes` dulu agar proses penyalinan public key dari Mika bisa berjalan (baru dinonaktifkan setelah key terpasang):
 ```bash
+# di Knights
 apk add --no-cache openssh
 ssh-keygen -A
 adduser -D mika_admin
 echo "mika_admin:mika123" | chpasswd
-echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
-echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config
-pkill sshd || true
+
+sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 /usr/sbin/sshd
 ```
 
@@ -424,6 +460,7 @@ pkill sshd || true
 
 Di Mika (client), dipasang `openssh-client`, dibuat user lokal `mika_admin`, lalu digenerate SSH key pair:
 ```bash
+# di Mika
 apk add --no-cache openssh-client
 adduser -D mika_admin
 su - mika_admin
@@ -432,15 +469,22 @@ ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
 
 ![mika ssh keygen](<assets/mika-ssh-keygen.png>)
 
-Public key didistribusikan ke Knights memakai   `ssh-copy-id` (atau cara manual `cat pubkey | ssh ... "cat >> authorized_keys"` sebagai alternatif):
+Public key didistribusikan ke Knights memakai `ssh-copy-id` (berhasil setelah `PasswordAuthentication` diizinkan sementara di atas — sempat gagal sebelumnya karena bug `ssh-copy-id` di lingkungan Alpine/BusyBox saat `PasswordAuthentication` sudah `no` duluan):
 ```bash
 ssh-copy-id mika_admin@192.213.3.2
+# password diminta SEKALI di sini: mika123
 ssh mika_admin@192.213.3.2
 ```
 
-![mika ssh to knights](<assets/mika-ssh-to-knights.png>)
+![mika ssh copyid success](<assets/mika-ssh-copyid-success.png>)
 
-Login berhasil langsung tanpa diminta password (`Welcome to Alpine!`), membuktikan autentikasi berbasis public-key berjalan.
+Login berhasil langsung tanpa diminta password (`Welcome to Alpine!`), membuktikan autentikasi berbasis public-key berjalan — SSH client secara otomatis mencoba metode public-key terlebih dahulu sebelum jatuh ke password, dan karena key sudah cocok, password tidak pernah diminta.
+
+Untuk penyelesaian akhir sesuai soal (memastikan hanya public-key yang diterima), setelah key terbukti berfungsi, `PasswordAuthentication` di Knights dikembalikan ke `no` dan `sshd` di-restart:
+```bash
+sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+pkill sshd && /usr/sbin/sshd
+```
 
 Capture Wireshark pada link Switch3–Knights dengan filter `ssh or tcp.port==22`:
 
