@@ -366,7 +366,7 @@ Capture pada link Switch2–Chisa dengan filter `icmp` menunjukkan pasangan Echo
 | Packet loss | 0% (77 paket terkirim, 77 diterima) |
 | RTT min/avg/max/mdev | 0.458 / 0.601 / 1.201 / 0.143 ms |
 
-**Revisi**
+**Revisi**  
 11. Buat akun `phantom_user` / `wired_ghost` pada telnetd di Chisa, login dari Eiri, capture di Wireshark, tunjukkan kredensial plaintext via Follow TCP Stream.
 
 Karena node Chisa berbasis Alpine, `telnetd` sudah tersedia bawaan BusyBox — cukup dibuat akunnya:
@@ -407,7 +407,7 @@ Pada Follow TCP Stream yang benar (diambil sejak awal koneksi), terlihat jelas:
 
 Ini membuktikan kelemahan fundamental Telnet: tidak ada enkripsi sama sekali, sehingga siapa pun yang bisa melakukan sniffing di jalur jaringan (seperti Eiri melakukan MITM atau siapa pun dengan akses ke link yang sama) dapat membaca username dan password korban secara langsung.
 
-**Revisi**
+**Revisi**  
 12. Alice memindai port Knights: 22 (SSH) dan 80 (HTTP) harus terbuka, 7777 harus tertutup. Analisis perbedaan TCP flag SYN-ACK vs RST-ACK.
 
 Di Knights, port 22 sudah otomatis terbuka karena `sshd` asli (dari setup poin 13) sedang berjalan di sana. Untuk port 80, cukup dibuka listener sederhana pakai `nc`, sementara port 7777 sengaja dibiarkan tertutup:
@@ -440,7 +440,7 @@ Hasilnya: port `22` dan `80` succeeded, sedangkan port `7777` connection refused
 | 80 | Open | `SYN` dibalas `SYN, ACK`, lalu ditutup normal dengan `FIN, ACK` dari kedua sisi |
 | 7777 | Closed | `SYN` langsung dibalas `RST, ACK` — tidak ada proses yang listen di port tersebut |
 
-**Revisi**
+**Revisi**  
 13. Install OpenSSH di Knights, buat key di Mika untuk user mika_admin, konfigurasi `PasswordAuthentication no`, koneksi SSH, dan jelaskan mengapa kredensial tidak terlihat plaintext.
 
 Di Knights (server), OpenSSH diinstal lewat `apk`, lalu dibuat user `mika_admin`. `PasswordAuthentication` sengaja dibiarkan `yes` dulu agar proses penyalinan public key dari Mika bisa berjalan (baru dinonaktifkan setelah key terpasang):
